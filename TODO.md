@@ -15,47 +15,47 @@
 
 
 ### Infrastructure
-- [ ] `docker-compose.yml` — PostgreSQL 16 service
-- [ ] `docker-compose.yml` — Redis 7 service
-- [ ] `.env.example` with `DATABASE_URL`, `REDIS_URL`, all feature flags
+- [x] `docker-compose.yml` — PostgreSQL 16 service
+- [x] `docker-compose.yml` — Redis 7 service
+- [x] `.env.example` with `DATABASE_URL`, `REDIS_URL`, all feature flags
 - [ ] Confirm `docker compose up` starts cleanly
 
 ### packages/db (Prisma)
-- [ ] `packages/db/package.json` and `tsconfig.json`
-- [ ] `prisma/schema.prisma` — User model (id, email, role enum: CONSUMER, MAKER, SUPPLIER, ADMIN, AGENT)
-- [ ] `prisma/schema.prisma` — MakerShop model (userId, name, location lat/lng, active, capacity)
-- [ ] `prisma/schema.prisma` — ShopCapability model (shopId, material, machineType, category)
-- [ ] `prisma/schema.prisma` — Supplier model (name, apiConfig JSON, active)
-- [ ] `prisma/schema.prisma` — ProductListing model (title, description, sourceType enum: LOCAL_PRINT / OVERSEAS / CUSTOM, price, currency, active)
-- [ ] `prisma/schema.prisma` — DesignFile model (listingId optional, uploaderId, fileKey, fileType, drmEnabled)
-- [ ] `prisma/schema.prisma` — DesignRoyalty model (designFileId, orderId, recipientId, amount, credits)
-- [ ] `prisma/schema.prisma` — Order model (userId, status enum: PENDING / ROUTED / IN_PRODUCTION / IN_TRANSIT / DELIVERED / CANCELLED)
-- [ ] `prisma/schema.prisma` — OrderItem model (orderId, listingId, designFileId, quantity, unitPrice)
-- [ ] `prisma/schema.prisma` — FulfillmentJob model (orderId, shopId, supplierId, status, acceptedAt, completedAt)
-- [ ] `prisma/schema.prisma` — RoutingDecision model (orderId, shopId, geoScore, costScore, capacityScore, capabilityScore, totalScore, chosen)
-- [ ] `prisma/schema.prisma` — TrackingEvent model (orderId, source, status, note, lat, lng, createdAt)
-- [ ] `prisma/schema.prisma` — DeliveryAssignment model (orderId, method enum: COURIER / DRONE / PICKUP / AUTONOMOUS, externalRef)
-- [ ] `prisma/schema.prisma` — CreditAccount model (userId, balance)
-- [ ] `prisma/schema.prisma` — CreditTransaction model (accountId, amount, type enum: EARNED / SPENT / ADJUSTMENT, note)
-- [ ] `prisma/schema.prisma` — PricingRule model (listingId, type enum: FIXED / COST_PLUS / FREE / DECAY, decaySchedule JSON optional)
-- [ ] `prisma/schema.prisma` — ApiKey model (userId, keyHash, name, scopes, lastUsedAt)
-- [ ] Run first migration (`prisma migrate dev --name init`)
-- [ ] Prisma client exported from `packages/db/src/index.ts`
+- [x] `packages/db/package.json` and `tsconfig.json`
+- [x] `prisma/schema.prisma` — User model (id, email, role enum: CONSUMER, MAKER, SUPPLIER, ADMIN, AGENT)
+- [x] `prisma/schema.prisma` — MakerShop model (userId, name, location lat/lng, active, capacity)
+- [x] `prisma/schema.prisma` — ShopCapability model (shopId, material, machineType, category)
+- [x] `prisma/schema.prisma` — Supplier model (name, apiConfig JSON, active)
+- [x] `prisma/schema.prisma` — ProductListing model (title, description, sourceType enum: LOCAL_PRINT / OVERSEAS / CUSTOM, price, currency, active)
+- [x] `prisma/schema.prisma` — DesignFile model (listingId optional, uploaderId, fileKey, fileType, drmEnabled)
+- [x] `prisma/schema.prisma` — DesignRoyalty model (designFileId, orderId, recipientId, amount, credits)
+- [x] `prisma/schema.prisma` — Order model (userId, status enum: PENDING / ROUTED / IN_PRODUCTION / IN_TRANSIT / DELIVERED / CANCELLED)
+- [x] `prisma/schema.prisma` — OrderItem model (orderId, listingId, designFileId, quantity, unitPrice)
+- [x] `prisma/schema.prisma` — FulfillmentJob model (orderId, shopId, supplierId, status, acceptedAt, completedAt)
+- [x] `prisma/schema.prisma` — RoutingDecision model (orderId, shopId, geoScore, costScore, capacityScore, capabilityScore, totalScore, chosen)
+- [x] `prisma/schema.prisma` — TrackingEvent model (orderId, source, status, note, lat, lng, createdAt)
+- [x] `prisma/schema.prisma` — DeliveryAssignment model (orderId, method enum: COURIER / DRONE / PICKUP / AUTONOMOUS, externalRef)
+- [x] `prisma/schema.prisma` — CreditAccount model (userId, balance)
+- [x] `prisma/schema.prisma` — CreditTransaction model (accountId, amount, type enum: EARNED / SPENT / ADJUSTMENT, note)
+- [x] `prisma/schema.prisma` — PricingRule model (listingId, type enum: FIXED / COST_PLUS / FREE / DECAY, decaySchedule JSON optional)
+- [x] `prisma/schema.prisma` — ApiKey model (userId, keyHash, name, scopes, lastUsedAt)
+- [x] Run first migration (`prisma migrate dev --name init`)
+- [x] Prisma client exported from `packages/db/src/index.ts`
 
 ### packages/types
-- [ ] `packages/types/package.json` and `tsconfig.json`
-- [ ] Shared enums mirroring Prisma enums (OrderStatus, UserRole, DeliveryMethod, etc.)
-- [ ] Shared API request/response types (CreateOrderInput, RoutingResult, TrackingEventPayload, etc.)
+- [x] `packages/types/package.json` and `tsconfig.json`
+- [x] Shared enums mirroring Prisma enums (OrderStatus, UserRole, DeliveryMethod, etc.)
+- [x] Shared API request/response types (CreateOrderInput, RoutingResult, TrackingEventPayload, etc.)
 
 ### packages/core
-- [ ] `packages/core/package.json` and `tsconfig.json`
-- [ ] `src/flags.ts` — reads all `ENABLE_*` env vars, exports typed feature flag object
-- [ ] `src/routing/index.ts` — `RouteOrder(order, candidates[]) → RoutingResult[]` interface
-- [ ] `src/routing/scorer.ts` — geo, cost, capacity, capability scoring functions
-- [ ] `src/routing/weights.ts` — configurable weight defaults (env-overridable)
-- [ ] `src/pricing/index.ts` — `ResolvePrice(listing, flags) → number` (handles free economy, decay)
-- [ ] `src/pricing/decay.ts` — price decay schedule evaluator
-- [ ] `src/credits/index.ts` — `EarnCredits`, `SpendCredits` helpers (no-op when flag off)
+- [x] `packages/core/package.json` and `tsconfig.json`
+- [x] `src/flags.ts` — reads all `ENABLE_*` env vars, exports typed feature flag object
+- [x] `src/routing/index.ts` — `RouteOrder(order, candidates[]) → RoutingResult[]` interface
+- [x] `src/routing/scorer.ts` — geo, cost, capacity, capability scoring functions
+- [x] `src/routing/weights.ts` — configurable weight defaults (env-overridable)
+- [x] `src/pricing/index.ts` — `ResolvePrice(listing, flags) → number` (handles free economy, decay)
+- [x] `src/pricing/decay.ts` — price decay schedule evaluator
+- [x] `src/credits/index.ts` — `EarnCredits`, `SpendCredits` helpers (no-op when flag off)
 
 ### packages/ui
 - [ ] `packages/ui/package.json` and `tsconfig.json`

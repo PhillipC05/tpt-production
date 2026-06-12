@@ -3,6 +3,14 @@
     "target": "ES2022",
     "module": "ESNext",
     "moduleResolution": "Bundler",
+    "ignoreDeprecations": "5.0",
+    "baseUrl": ".",
+    "paths": {
+      "@tpt/types": ["packages/types/dist/index.d.ts"],
+      "@tpt/types/*": ["packages/types/dist/*"],
+      "@tpt/db": ["packages/db/dist/index.d.ts"],
+      "@tpt/db/*": ["packages/db/dist/*"]
+    },
     "lib": ["ES2022"],
     "strict": true,
     "exactOptionalPropertyTypes": true,

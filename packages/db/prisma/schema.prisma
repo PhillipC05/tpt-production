@@ -1,0 +1,328 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CONSUMER
+  MAKER
+  SUPPLIER
+  ADMIN
+  AGENT
+}
+
+enum SourceType {
+  LOCAL_PRINT
+  OVERSEAS
+  CUSTOM
+}
+
+enum OrderStatus {
+  PENDING
+  ROUTED
+  IN_PRODUCTION
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum FulfillmentJobStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum DeliveryMethod {
+  COURIER
+  DRONE
+  PICKUP
+  AUTONOMOUS
+}
+
+enum CreditTransactionType {
+  EARNED
+  SPENT
+  ADJUSTMENT
+}
+
+enum PricingRuleType {
+  FIXED
+  COST_PLUS
+  FREE
+  DECAY
+}
+
+model User {
+  id              String          @id @default(cuid())
+  email           String          @unique
+  role            UserRole        @default(CONSUMER)
+  makerShop       MakerShop?
+  designFiles     DesignFile[]    @relation("UploadedDesigns")
+  royalties       DesignRoyalty[] @relation("RoyaltyRecipients")
+  orders          Order[]
+  creditAccount   CreditAccount?
+  apiKeys         ApiKey[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([role])
+}
+
+model MakerShop {
+  id              String            @id @default(cuid())
+  userId          String            @unique
+  user            User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  locationLat     Float
+  locationLng     Float
+  active          Boolean           @default(true)
+  capacity        Int               @default(0)
+  capabilities    ShopCapability[]
+  fulfillmentJobs FulfillmentJob[]  @relation("ShopFulfillmentJobs")
+  routingDecisions RoutingDecision[] @relation("ShopRoutingDecisions")
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  @@index([active, locationLat, locationLng])
+}
+
+model ShopCapability {
+  id          String    @id @default(cuid())
+  shopId      String
+  shop        MakerShop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  material    String
+  machineType String
+  category    String
+  createdAt   DateTime  @default(now())
+
+  @@unique([shopId, material, machineType, category])
+  @@index([material, machineType, category])
+}
+
+model Supplier {
+  id              String           @id @default(cuid())
+  name            String
+  apiConfig       Json
+  active          Boolean          @default(true)
+  fulfillmentJobs FulfillmentJob[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([active])
+}
+
+model ProductListing {
+  id            String        @id @default(cuid())
+  title         String
+  description   String
+  category      String?
+  sourceType    SourceType    @default(LOCAL_PRINT)
+  price         Float
+  currency      String        @default("NZD")
+  active        Boolean       @default(true)
+  designFiles   DesignFile[]
+  orderItems    OrderItem[]
+  pricingRules  PricingRule[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@index([active, sourceType, category])
+}
+
+model CustomOrderRequest {
+  id        String  @id @default(cuid())
+  name      String?
+  email     String?
+  phone     String?
+  request   String
+  status    String  @default("PENDING")
+  metadata  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model DesignFile {
+  id          String          @id @default(cuid())
+  listingId   String?
+  listing     ProductListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  uploaderId  String
+  uploader    User            @relation("UploadedDesigns", fields: [uploaderId], references: [id], onDelete: Restrict)
+  fileKey     String          @unique
+  fileType    String
+  drmEnabled  Boolean         @default(true)
+  orderItems  OrderItem[]
+  royalties   DesignRoyalty[] @relation("DesignFileRoyalties")
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([uploaderId])
+}
+
+model DesignRoyalty {
+  id           String    @id @default(cuid())
+  designFileId String
+  designFile   DesignFile @relation("DesignFileRoyalties", fields: [designFileId], references: [id], onDelete: Cascade)
+  orderId      String
+  order        Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  recipientId  String
+  recipient    User      @relation("RoyaltyRecipients", fields: [recipientId], references: [id], onDelete: Restrict)
+  amount       Float
+  credits      Int       @default(0)
+  createdAt    DateTime  @default(now())
+
+  @@unique([orderId, designFileId, recipientId])
+  @@index([recipientId])
+}
+
+model Order {
+  id                String             @id @default(cuid())
+  userId            String
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  status            OrderStatus        @default(PENDING)
+  items             OrderItem[]
+  royalties         DesignRoyalty[]
+  fulfillmentJobs   FulfillmentJob[]
+  routingDecisions  RoutingDecision[]
+  trackingEvents    TrackingEvent[]
+  deliveryAssignment DeliveryAssignment?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@index([userId, status])
+}
+
+model OrderItem {
+  id           String         @id @default(cuid())
+  orderId      String
+  order        Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  listingId    String?
+  listing      ProductListing? @relation(fields: [listingId], references: [id], onDelete: SetNull)
+  designFileId String?
+  designFile   DesignFile?     @relation(fields: [designFileId], references: [id], onDelete: SetNull)
+  quantity     Int
+  unitPrice    Float
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([orderId, listingId, designFileId])
+}
+
+model FulfillmentJob {
+  id          String                @id @default(cuid())
+  orderId     String
+  order       Order                 @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shopId      String?
+  shop        MakerShop?            @relation("ShopFulfillmentJobs", fields: [shopId], references: [id], onDelete: SetNull)
+  supplierId  String?
+  supplier    Supplier?             @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  status      FulfillmentJobStatus  @default(PENDING)
+  acceptedAt  DateTime?
+  completedAt DateTime?
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+
+  @@index([orderId, status])
+  @@index([shopId, supplierId])
+}
+
+model RoutingDecision {
+  id              String      @id @default(cuid())
+  orderId         String
+  order           Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  shopId          String?
+  shop            MakerShop?  @relation("ShopRoutingDecisions", fields: [shopId], references: [id], onDelete: SetNull)
+  geoScore        Float       @default(0)
+  costScore       Float       @default(0)
+  capacityScore   Float       @default(0)
+  capabilityScore Float       @default(0)
+  totalScore      Float       @default(0)
+  chosen          Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  @@index([orderId, chosen])
+  @@index([shopId, totalScore])
+}
+
+model TrackingEvent {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  source    String
+  status    String
+  note      String?
+  lat       Float?
+  lng       Float?
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+  @@index([source, status])
+}
+
+model DeliveryAssignment {
+  id          String         @id @default(cuid())
+  orderId     String         @unique
+  order       Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  method      DeliveryMethod @default(COURIER)
+  externalRef String?
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  @@index([method])
+}
+
+model CreditAccount {
+  id           String              @id @default(cuid())
+  userId       String              @unique
+  user         User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  balance      Float               @default(0)
+  transactions CreditTransaction[]
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+}
+
+model CreditTransaction {
+  id        String                @id @default(cuid())
+  accountId String
+  account   CreditAccount         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  amount    Float
+  type      CreditTransactionType @default(EARNED)
+  note      String?
+  createdAt DateTime              @default(now())
+
+  @@index([accountId, createdAt, type])
+}
+
+model PricingRule {
+  id            String          @id @default(cuid())
+  listingId     String
+  listing       ProductListing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  type          PricingRuleType @default(FIXED)
+  decaySchedule Json?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([listingId, type])
+}
+
+model ApiKey {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  keyHash    String   @unique
+  name       String
+  scopes     String   @default("")
+  lastUsedAt DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
+}

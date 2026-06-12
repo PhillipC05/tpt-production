@@ -32,6 +32,7 @@ Thumbs.db
 
 # Prisma
 prisma/dev.db
+packages/db/prisma/dev.db
 
 # Next.js
 .next/
