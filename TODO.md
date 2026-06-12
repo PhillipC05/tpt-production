@@ -7,10 +7,10 @@
 ## Phase 1 — Foundation
 
 ### Monorepo & Tooling
-- [ ] Initialise pnpm workspace (`pnpm init`, `pnpm-workspace.yaml`)
-- [ ] Add Turborepo (`turbo.json` with dev/build/lint pipelines)
-- [ ] Root `package.json` with shared dev deps (TypeScript, ESLint, Prettier)
-- [ ] `.gitignore`, `.env.example`, `tsconfig.base.json`
+- [x] Initialise pnpm workspace (`pnpm init`, `pnpm-workspace.yaml`)
+- [x] Add Turborepo (`turbo.json` with dev/build/lint pipelines)
+- [x] Root `package.json` with shared dev deps (TypeScript, ESLint, Prettier)
+- [x] `.gitignore`, `.env.example`, `tsconfig.base.json`
 - [x] Git repository initialised (`git init`, initial commit)
 
 
