@@ -58,49 +58,49 @@
 - [x] `src/credits/index.ts` — `EarnCredits`, `SpendCredits` helpers (no-op when flag off)
 
 ### packages/ui
-- [ ] `packages/ui/package.json` and `tsconfig.json`
-- [ ] Tailwind config shared base
-- [ ] shadcn/ui components added: Button, Card, Badge, Input, Label, Select, Table, Dialog, Tabs, Toast
-- [ ] `src/index.ts` re-exports all components
+- [x] `packages/ui/package.json` and `tsconfig.json`
+- [x] Tailwind config shared base
+- [x] shadcn/ui components added: Button, Card, Badge, Input, Label, Select, Table, Dialog, Tabs, Toast
+- [x] `src/index.ts` re-exports all components
 
 ---
 
 ## Phase 2 — Marketplace
 
 ### apps/api — Catalog & Designs
-- [ ] Hono app scaffold (`apps/api/src/index.ts`) with OpenAPI middleware
-- [ ] `GET /catalog` — paginated, filterable product listing (sourceType, category, priceMin/Max, search)
-- [ ] `GET /catalog/:id` — single listing with design files
-- [ ] `POST /catalog` — admin: create listing
-- [ ] `PUT /catalog/:id` — admin: update listing
-- [ ] `DELETE /catalog/:id` — admin: deactivate listing
-- [ ] `POST /designs/upload` — returns presigned R2 (or local) URL, creates DesignFile record
-- [ ] `GET /designs/:id` — fetch design metadata (access-controlled if DRM enabled)
-- [ ] `POST /orders/custom` — submit a free-text custom order request
+- [x] Hono app scaffold (`apps/api/src/index.ts`) with OpenAPI middleware
+- [x] `GET /catalog` — paginated, filterable product listing (sourceType, category, priceMin/Max, search)
+- [x] `GET /catalog/:id` — single listing with design files
+- [x] `POST /catalog` — admin: create listing
+- [x] `PUT /catalog/:id` — admin: update listing
+- [x] `DELETE /catalog/:id` — admin: deactivate listing
+- [x] `POST /designs/upload` — returns presigned R2 (or local) URL, creates DesignFile record
+- [x] `GET /designs/:id` — fetch design metadata (access-controlled if DRM enabled)
+- [x] `POST /orders/custom` — submit a free-text custom order request
 
 ### apps/api — Shop & Supplier Onboarding
-- [ ] `POST /shops/onboard` — self-serve shop registration
-- [ ] `PUT /shops/:id` — update shop details / capabilities
-- [ ] `GET /shops/:id/capacity` — returns current available capacity
-- [ ] `POST /shops/:id/capabilities` — add/update capabilities (materials, machines, categories)
-- [ ] `POST /suppliers` — admin: add supplier with API config
-- [ ] `GET /suppliers` — admin: list suppliers
+- [x] `POST /shops/onboard` — self-serve shop registration
+- [x] `PUT /shops/:id` — update shop details / capabilities
+- [x] `GET /shops/:id/capacity` — returns current available capacity
+- [x] `POST /shops/:id/capabilities` — add/update capabilities (materials, machines, categories)
+- [x] `POST /suppliers` — admin: add supplier with API config
+- [x] `GET /suppliers` — admin: list suppliers
 
 ### apps/web — Consumer Marketplace
-- [ ] Next.js 15 App Router scaffold (`apps/web`)
-- [ ] Tailwind + shadcn/ui wired up
-- [ ] `/` homepage — hero, featured listings, categories
-- [ ] `/catalog` — browse/search/filter product listings
-- [ ] `/catalog/[id]` — listing detail page (description, price, design files, order CTA)
-- [ ] `/designs/upload` — design file upload form (STL, OBJ, 3MF, STEP)
-- [ ] `/orders/custom` — custom order request form
+- [x] Next.js 15 App Router scaffold (`apps/web`)
+- [x] Tailwind + shadcn/ui wired up
+- [x] `/` homepage — hero, featured listings, categories
+- [x] `/catalog` — browse/search/filter product listings
+- [x] `/catalog/[id]` — listing detail page (description, price, design files, order CTA)
+- [x] `/designs/upload` — design file upload form (STL, OBJ, 3MF, STEP)
+- [x] `/orders/custom` — custom order request form
 
 ### apps/admin — Maker Portal
-- [ ] Next.js 15 scaffold (`apps/admin`)
-- [ ] `/shops/onboard` — shop registration wizard (name, location, capabilities)
-- [ ] `/shops/dashboard` — shop's incoming jobs, capacity controls
-- [ ] `/catalog/new` — admin: create product listing
-- [ ] `/catalog` — admin: list/edit/deactivate listings
+- [x] Next.js 15 scaffold (`apps/admin`)
+- [x] `/shops/onboard` — shop registration wizard (name, location, capabilities)
+- [x] `/shops/dashboard` — shop's incoming jobs, capacity controls
+- [x] `/catalog/new` — admin: create product listing
+- [x] `/catalog` — admin: list/edit/deactivate listings
 
 ---
 

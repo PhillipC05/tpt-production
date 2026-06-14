@@ -2,14 +2,20 @@ import { PrismaClient } from "@tpt/db";
 import { SourceType } from "@tpt/types";
 import type { JsonValue } from "@tpt/types";
 import type {
+  AddCapabilitiesInput,
   CreateCustomOrderRequestInput,
   CreateProductListingInput,
+  CreateSupplierInput,
   CustomOrderRequest,
   DesignFile,
   DesignUploadResponse,
+  MakerShop,
+  OnboardShopInput,
   PricingRule,
   ProductListing,
+  Supplier,
   UpdateProductListingInput,
+  UpdateShopInput,
 } from "@tpt/types";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -81,7 +87,7 @@ type ListingResponseInput = {
     createdAt: Date;
     updatedAt: Date;
   }>;
-  pricingRules: Array<{
+  pricingRules?: Array<{
     id: string;
     listingId: string;
     type: "FIXED" | "COST_PLUS" | "FREE" | "DECAY";
@@ -236,6 +242,181 @@ const idParamSchema = z.object({
     param: { name: "id", in: "path" },
     example: "cm2...",
   }),
+});
+
+const shopCapabilitySchema = z.object({
+  id: z.string().optional(),
+  shopId: z.string().optional(),
+  material: z.string().trim().min(1).max(80),
+  machineType: z.string().trim().min(1).max(80),
+  category: z.string().trim().min(1).max(80),
+  createdAt: z.string().datetime().optional(),
+});
+
+const makerShopSchema = z.object({
+  id: z.string(),
+  userId: z.string(),
+  name: z.string(),
+  locationLat: z.number(),
+  locationLng: z.number(),
+  active: z.boolean(),
+  capacity: z.number().int(),
+  capabilities: z.array(shopCapabilitySchema).optional(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+const onboardShopSchema = z.object({
+  email: z.string().trim().email().max(255),
+  name: z.string().trim().min(1).max(120),
+  locationLat: z.number().finite().min(-90).max(90),
+  locationLng: z.number().finite().min(-180).max(180),
+  capacity: z.number().int().nonnegative().default(0),
+});
+
+const updateShopSchema = z.object({
+  name: z.string().trim().min(1).max(120).optional(),
+  locationLat: z.number().finite().min(-90).max(90).optional(),
+  locationLng: z.number().finite().min(-180).max(180).optional(),
+  active: z.boolean().optional(),
+  capacity: z.number().int().nonnegative().optional(),
+});
+
+const shopCapacityResponseSchema = z.object({
+  shopId: z.string(),
+  capacity: z.number().int(),
+  active: z.boolean(),
+});
+
+const addCapabilitiesSchema = z.object({
+  capabilities: z
+    .array(
+      z.object({
+        material: z.string().trim().min(1).max(80),
+        machineType: z.string().trim().min(1).max(80),
+        category: z.string().trim().min(1).max(80),
+      }),
+    )
+    .min(1)
+    .max(50),
+});
+
+const supplierSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  apiConfig: z.record(z.unknown()),
+  active: z.boolean(),
+  createdAt: z.string().datetime().optional(),
+  updatedAt: z.string().datetime().optional(),
+});
+
+const createSupplierSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+  apiConfig: z.record(z.unknown()),
+  active: z.boolean().default(true),
+});
+
+const onboardShopRoute = createRoute({
+  method: "post",
+  path: "/shops/onboard",
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: onboardShopSchema } },
+    },
+  },
+  responses: {
+    201: {
+      description: "Shop created",
+      content: { "application/json": { schema: makerShopSchema } },
+    },
+    409: { description: "User already has a shop" },
+  },
+});
+
+const updateShopRoute = createRoute({
+  method: "put",
+  path: "/shops/{id}",
+  request: {
+    params: idParamSchema,
+    body: {
+      required: true,
+      content: { "application/json": { schema: updateShopSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Updated shop",
+      content: { "application/json": { schema: makerShopSchema } },
+    },
+    404: { description: "Shop not found" },
+  },
+  security: [{ bearerAuth: [] }, { apiKey: [] }],
+});
+
+const getShopCapacityRoute = createRoute({
+  method: "get",
+  path: "/shops/{id}/capacity",
+  request: { params: idParamSchema },
+  responses: {
+    200: {
+      description: "Shop capacity",
+      content: { "application/json": { schema: shopCapacityResponseSchema } },
+    },
+    404: { description: "Shop not found" },
+  },
+});
+
+const addCapabilitiesRoute = createRoute({
+  method: "post",
+  path: "/shops/{id}/capabilities",
+  request: {
+    params: idParamSchema,
+    body: {
+      required: true,
+      content: { "application/json": { schema: addCapabilitiesSchema } },
+    },
+  },
+  responses: {
+    200: {
+      description: "Shop with updated capabilities",
+      content: { "application/json": { schema: makerShopSchema } },
+    },
+    404: { description: "Shop not found" },
+  },
+  security: [{ bearerAuth: [] }, { apiKey: [] }],
+});
+
+const createSupplierRoute = createRoute({
+  method: "post",
+  path: "/suppliers",
+  request: {
+    body: {
+      required: true,
+      content: { "application/json": { schema: createSupplierSchema } },
+    },
+  },
+  responses: {
+    201: {
+      description: "Created supplier",
+      content: { "application/json": { schema: supplierSchema } },
+    },
+    401: { description: "Admin token required" },
+  },
+  security: [{ bearerAuth: [] }, { apiKey: [] }],
+});
+
+const listSuppliersRoute = createRoute({
+  method: "get",
+  path: "/suppliers",
+  responses: {
+    200: {
+      description: "List of suppliers",
+      content: { "application/json": { schema: z.array(supplierSchema) } },
+    },
+    401: { description: "Admin token required" },
+  },
+  security: [{ bearerAuth: [] }, { apiKey: [] }],
 });
 
 const catalogQuerySchema = z.object({
@@ -523,6 +704,13 @@ app.openapi(createCatalogRoute, async (c) => {
     },
   });
 
+  if (!enrichedListing) {
+    return c.json(
+      { error: { code: "NOT_FOUND", message: "Listing not found" } } as never,
+      404,
+    );
+  }
+
   return c.json(listingToResponse(enrichedListing) as never, 201);
 });
 
@@ -586,6 +774,13 @@ app.openapi(updateCatalogRoute, async (c) => {
     },
   });
 
+  if (!enrichedListing) {
+    return c.json(
+      { error: { code: "NOT_FOUND", message: "Listing not found" } } as never,
+      404,
+    );
+  }
+
   return c.json(listingToResponse(enrichedListing) as never);
 });
 
@@ -612,12 +807,12 @@ app.openapi(uploadDesignRoute, async (c) => {
   const input = c.req.valid("json");
 
   if (input.listingId) {
-    const listing = await prisma.productListing.findUnique({
+    const listingActive = await prisma.productListing.findUnique({
       where: { id: input.listingId },
       select: { active: true },
     } as never);
 
-    if (!listing?.active) {
+    if (!listingActive?.active) {
       return c.json(
         {
           error: {
@@ -720,29 +915,174 @@ app.openapi(createCustomOrderRoute, async (c) => {
   return c.json(customOrderRequestToResponse(customOrderRequest) as never, 202);
 });
 
-app.doc31("/openapi.json", {
-  openapi: "3.1.0",
-  info: {
-    title: "TPT Marketplace API",
-    version: "1.0.0",
-    description: "Catalog, design upload, and custom order endpoints.",
-  },
-  servers: [{ url: "/" }],
-  components: {
-    securitySchemes: {
-      bearerAuth: {
-        type: "http",
-        scheme: "bearer",
-        bearerFormat: "opaque",
-      },
-      apiKey: {
-        type: "apiKey",
-        in: "header",
-        name: "X-API-Key",
+app.openapi(onboardShopRoute, async (c) => {
+  const input = c.req.valid("json") as OnboardShopInput;
+
+  const existingUser = await prisma.user.findUnique({ where: { email: input.email } });
+  const user =
+    existingUser ??
+    (await prisma.user.create({
+      data: { email: input.email, role: "MAKER" },
+    }));
+
+  if (user.role !== "MAKER" && user.role !== "ADMIN") {
+    await prisma.user.update({ where: { id: user.id }, data: { role: "MAKER" } });
+  }
+
+  const existingShop = await prisma.makerShop.findUnique({ where: { userId: user.id } });
+  if (existingShop) {
+    return c.json(
+      { error: { code: "SHOP_EXISTS", message: "User already has a shop" } } as never,
+      409,
+    );
+  }
+
+  const shop = await prisma.makerShop.create({
+    data: {
+      userId: user.id,
+      name: input.name,
+      locationLat: input.locationLat,
+      locationLng: input.locationLng,
+      capacity: input.capacity ?? 0,
+    },
+    include: { capabilities: true },
+  });
+
+  return c.json(shopToResponse(shop) as never, 201);
+});
+
+app.openapi(updateShopRoute, async (c) => {
+  const { id } = c.req.valid("param");
+  const input = c.req.valid("json") as UpdateShopInput;
+  const existing = await prisma.makerShop.findUnique({ where: { id } });
+
+  if (!existing) {
+    return c.json(
+      { error: { code: "NOT_FOUND", message: "Shop not found" } },
+      404,
+    );
+  }
+
+  const updateData: Record<string, unknown> = {};
+  setIfDefined(updateData, "name", input.name);
+  setIfDefined(updateData, "locationLat", input.locationLat);
+  setIfDefined(updateData, "locationLng", input.locationLng);
+  setIfDefined(updateData, "active", input.active);
+  setIfDefined(updateData, "capacity", input.capacity);
+
+  const shop = await prisma.makerShop.update({
+    where: { id },
+    data: updateData as never,
+    include: { capabilities: true },
+  });
+
+  return c.json(shopToResponse(shop) as never);
+});
+
+app.openapi(getShopCapacityRoute, async (c) => {
+  const { id } = c.req.valid("param");
+  const shop = await prisma.makerShop.findUnique({
+    where: { id },
+    select: { id: true, capacity: true, active: true },
+  });
+
+  if (!shop) {
+    return c.json(
+      { error: { code: "NOT_FOUND", message: "Shop not found" } },
+      404,
+    );
+  }
+
+  return c.json({ shopId: shop.id, capacity: shop.capacity, active: shop.active } as never);
+});
+
+app.openapi(addCapabilitiesRoute, async (c) => {
+  const { id } = c.req.valid("param");
+  const input = c.req.valid("json") as AddCapabilitiesInput;
+  const existing = await prisma.makerShop.findUnique({ where: { id } });
+
+  if (!existing) {
+    return c.json(
+      { error: { code: "NOT_FOUND", message: "Shop not found" } },
+      404,
+    );
+  }
+
+  await prisma.$transaction(
+    input.capabilities.map((cap) =>
+      prisma.shopCapability.upsert({
+        where: {
+          shopId_material_machineType_category: {
+            shopId: id,
+            material: cap.material,
+            machineType: cap.machineType,
+            category: cap.category,
+          },
+        },
+        create: { shopId: id, ...cap },
+        update: {},
+      }),
+    ),
+  );
+
+  const shop = await prisma.makerShop.findUnique({
+    where: { id },
+    include: { capabilities: true },
+  });
+
+  return c.json(shopToResponse(shop!) as never);
+});
+
+app.openapi(createSupplierRoute, async (c) => {
+  const adminError = requireAdmin(c);
+  if (adminError) return adminError;
+
+  const input = c.req.valid("json") as CreateSupplierInput;
+  const supplier = await prisma.supplier.create({
+    data: {
+      name: input.name,
+      apiConfig: input.apiConfig as never,
+      active: input.active ?? true,
+    },
+  });
+
+  return c.json(supplierToResponse(supplier) as never, 201);
+});
+
+app.openapi(listSuppliersRoute, async (c) => {
+  const adminError = requireAdmin(c);
+  if (adminError) return adminError;
+
+  const suppliers = await prisma.supplier.findMany({ orderBy: { createdAt: "desc" } });
+  return c.json(suppliers.map(supplierToResponse) as never);
+});
+
+app.doc31(
+  "/openapi.json",
+  {
+    openapi: "3.1.0",
+    info: {
+      title: "TPT Marketplace API",
+      version: "1.0.0",
+      description: "Catalog, design upload, and custom order endpoints.",
+    },
+    servers: [{ url: "/" }],
+    components: {
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "opaque",
+        },
+        apiKey: {
+          type: "apiKey",
+          in: "header",
+          name: "X-API-Key",
+        },
       },
     },
-  },
-});
+  } as never,
+);
 
 app.get("/docs", (c) =>
   c.html(SwaggerUI({ url: "/openapi.json", title: "TPT Marketplace API" })),
@@ -805,7 +1145,11 @@ function listingToResponse(listing: ListingResponseInput): ProductListing {
 
   setIfDefined(response, "category", listing.category ?? undefined);
   setIfDefined(response, "designFiles", listing.designFiles.map(designFileToResponse));
-  setIfDefined(response, "pricingRules", listing.pricingRules.map(pricingRuleToResponse));
+  setIfDefined(
+    response,
+    "pricingRules",
+    listing.pricingRules?.map(pricingRuleToResponse),
+  );
 
   return response;
 }
@@ -869,6 +1213,74 @@ function customOrderRequestToResponse(
   );
 
   return response;
+}
+
+type ShopResponseInput = {
+  id: string;
+  userId: string;
+  name: string;
+  locationLat: number;
+  locationLng: number;
+  active: boolean;
+  capacity: number;
+  capabilities?: Array<{
+    id: string;
+    shopId: string;
+    material: string;
+    machineType: string;
+    category: string;
+    createdAt: Date;
+  }>;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
+
+type SupplierResponseInput = {
+  id: string;
+  name: string;
+  apiConfig: unknown;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+function shopToResponse(shop: ShopResponseInput): MakerShop {
+  const response: MakerShop = {
+    id: shop.id,
+    userId: shop.userId,
+    name: shop.name,
+    locationLat: shop.locationLat,
+    locationLng: shop.locationLng,
+    active: shop.active,
+    capacity: shop.capacity,
+  };
+
+  if (shop.capabilities) {
+    response.capabilities = shop.capabilities.map((cap) => ({
+      id: cap.id,
+      shopId: cap.shopId,
+      material: cap.material,
+      machineType: cap.machineType,
+      category: cap.category,
+      createdAt: cap.createdAt.toISOString(),
+    }));
+  }
+
+  if (shop.createdAt) response.createdAt = shop.createdAt.toISOString();
+  if (shop.updatedAt) response.updatedAt = shop.updatedAt.toISOString();
+
+  return response;
+}
+
+function supplierToResponse(supplier: SupplierResponseInput): Supplier {
+  return {
+    id: supplier.id,
+    name: supplier.name,
+    apiConfig: supplier.apiConfig as Supplier["apiConfig"],
+    active: supplier.active,
+    createdAt: supplier.createdAt.toISOString(),
+    updatedAt: supplier.updatedAt.toISOString(),
+  };
 }
 
 function requireAdmin(c: RequestContext): Response | null {

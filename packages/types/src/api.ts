@@ -309,3 +309,61 @@ export interface ResolvePriceBreakdown {
     curve: PriceDecayCurve;
   };
 }
+
+export interface MakerShop {
+  id: string;
+  userId: string;
+  name: string;
+  locationLat: number;
+  locationLng: number;
+  active: boolean;
+  capacity: number;
+  capabilities?: ShopCapability[];
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface OnboardShopInput {
+  email: string;
+  name: string;
+  locationLat: number;
+  locationLng: number;
+  capacity?: number;
+}
+
+export interface UpdateShopInput {
+  name?: string;
+  locationLat?: number;
+  locationLng?: number;
+  active?: boolean;
+  capacity?: number;
+}
+
+export interface ShopCapacityResponse {
+  shopId: string;
+  capacity: number;
+  active: boolean;
+}
+
+export interface AddCapabilitiesInput {
+  capabilities: Array<{
+    material: string;
+    machineType: string;
+    category: string;
+  }>;
+}
+
+export interface Supplier {
+  id: string;
+  name: string;
+  apiConfig: JsonObject;
+  active: boolean;
+  createdAt?: Date | string;
+  updatedAt?: Date | string;
+}
+
+export interface CreateSupplierInput {
+  name: string;
+  apiConfig: JsonObject;
+  active?: boolean;
+}
