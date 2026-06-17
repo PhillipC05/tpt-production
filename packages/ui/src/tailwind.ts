@@ -1,5 +1,5 @@
 export const uiTailwindBase = {
-  darkMode: ["class"],
+  darkMode: ["class"] as ["class"],
   theme: {
     container: {
       center: true,
@@ -73,6 +73,6 @@ export const uiTailwindBase = {
     },
   },
   plugins: [],
-} as const;
+};
 
 export default uiTailwindBase;

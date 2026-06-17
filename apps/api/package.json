@@ -16,7 +16,9 @@
     "dev": "tsx watch src/index.ts",
     "start": "node dist/index.js",
     "lint": "eslint . --max-warnings=0",
-    "type-check": "tsc -p tsconfig.json --noEmit"
+    "type-check": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.844.0",
@@ -24,13 +26,20 @@
     "@hono/node-server": "^1.14.2",
     "@hono/swagger-ui": "^0.5.2",
     "@hono/zod-openapi": "^0.19.3",
+    "@tpt/core": "workspace:*",
     "@tpt/db": "workspace:*",
     "@tpt/types": "workspace:*",
+    "bullmq": "^5.0.0",
     "hono": "^4.8.0",
+    "hono-rate-limiter": "^0.5.3",
+    "pino": "^10.3.1",
+    "socket.io": "^4.8.3",
+    "stripe": "^22.2.1",
     "zod": "^3.25.76"
   },
   "devDependencies": {
-    "@types/node": "^22.10.2",
-    "tsx": "^4.20.3"
+    "@types/node": "^22.19.21",
+    "tsx": "^4.20.3",
+    "vitest": "^4.1.9"
   }
 }

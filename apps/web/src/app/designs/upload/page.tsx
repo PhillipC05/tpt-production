@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, FormEvent } from "react";
-import { Button } from "@tpt/ui/button";
+import { Button, buttonVariants } from "@tpt/ui/button";
 import { Input } from "@tpt/ui/input";
 import { Label } from "@tpt/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@tpt/ui/card";
@@ -165,9 +165,9 @@ export default function DesignUploadPage() {
               </p>
             )}
 
-            <Button type="submit" disabled={status === "uploading"} className="w-full">
+            <button type="submit" disabled={status === "uploading"} className={buttonVariants({ className: "w-full" })}>
               {status === "uploading" ? "Uploading..." : "Upload Design"}
-            </Button>
+            </button>
           </form>
         </CardContent>
       </Card>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@tpt/ui/button";
+import { buttonVariants } from "@tpt/ui/button";
 import { Input } from "@tpt/ui/input";
 import { Label } from "@tpt/ui/label";
 import { Card } from "@tpt/ui/card";
@@ -148,9 +148,9 @@ export default function OnboardPage() {
             />
           </div>
 
-          <Button type="submit" disabled={loading}>
+          <button type="submit" disabled={loading} className={buttonVariants()}>
             {loading ? "Registering..." : "Register Shop"}
-          </Button>
+          </button>
         </form>
       </Card>
     </div>

@@ -35,9 +35,16 @@
     "build": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
     "lint": "eslint . --max-warnings=0",
-    "type-check": "tsc -b ../types/tsconfig.json tsconfig.json --noEmit"
+    "type-check": "tsc -b ../types/tsconfig.json tsconfig.json --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
   },
   "dependencies": {
     "@tpt/types": "workspace:*"
+  },
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.9",
+    "vitest": "^4.1.9"
   }
 }

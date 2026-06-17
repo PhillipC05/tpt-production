@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@tpt/ui/card";
 import { Badge } from "@tpt/ui/badge";
-import { Button } from "@tpt/ui/button";
+import { Button, buttonVariants } from "@tpt/ui/button";
 import { Input } from "@tpt/ui/input";
 import { Label } from "@tpt/ui/label";
 
@@ -144,8 +144,8 @@ export default async function CatalogPage({
         </div>
 
         <div className="flex gap-2">
-          <Button type="submit">Apply Filters</Button>
-          <Button type="reset" variant="outline" asChild>
+          <button type="submit" className={buttonVariants()}>Apply Filters</button>
+          <Button variant="outline" asChild>
             <Link href="/catalog">Clear</Link>
           </Button>
         </div>

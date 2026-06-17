@@ -59,6 +59,13 @@ enum PricingRuleType {
   DECAY
 }
 
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+}
+
 model User {
   id              String          @id @default(cuid())
   email           String          @unique
@@ -85,6 +92,7 @@ model MakerShop {
   active          Boolean           @default(true)
   capacity        Int               @default(0)
   capabilities    ShopCapability[]
+  listings        ProductListing[]  @relation("ShopListings")
   fulfillmentJobs FulfillmentJob[]  @relation("ShopFulfillmentJobs")
   routingDecisions RoutingDecision[] @relation("ShopRoutingDecisions")
   createdAt       DateTime          @default(now())
@@ -120,6 +128,9 @@ model Supplier {
 
 model ProductListing {
   id            String        @id @default(cuid())
+  externalId    String?
+  shopId        String?
+  shop          MakerShop?    @relation("ShopListings", fields: [shopId], references: [id], onDelete: SetNull)
   title         String
   description   String
   category      String?
@@ -133,7 +144,10 @@ model ProductListing {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
 
+  @@unique([shopId, externalId])
   @@index([active, sourceType, category])
+  @@index([shopId, active])
+  @@index([externalId])
 }
 
 model CustomOrderRequest {
@@ -177,10 +191,12 @@ model DesignRoyalty {
   recipient    User      @relation("RoyaltyRecipients", fields: [recipientId], references: [id], onDelete: Restrict)
   amount       Float
   credits      Int       @default(0)
+  paidAt       DateTime?
   createdAt    DateTime  @default(now())
 
   @@unique([orderId, designFileId, recipientId])
   @@index([recipientId])
+  @@index([paidAt])
 }
 
 model Order {
@@ -194,6 +210,7 @@ model Order {
   routingDecisions  RoutingDecision[]
   trackingEvents    TrackingEvent[]
   deliveryAssignment DeliveryAssignment?
+  payment           Payment?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
 
@@ -325,4 +342,48 @@ model ApiKey {
   updatedAt  DateTime @updatedAt
 
   @@index([userId])
+}
+
+model Payment {
+  id                      String        @id @default(cuid())
+  orderId                 String        @unique
+  order                   Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  stripeCheckoutSessionId String?       @unique
+  stripePaymentIntentId   String?
+  status                  PaymentStatus @default(PENDING)
+  amount                  Float
+  currency                String        @default("NZD")
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  @@index([status])
+  @@index([stripePaymentIntentId])
+}
+
+model Webhook {
+  id        String   @id @default(cuid())
+  url       String
+  secret    String
+  events    String   @default("")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active])
+}
+
+model ImportJob {
+  id          String    @id @default(cuid())
+  shopId      String?
+  status      String    @default("PENDING")
+  totalRows   Int       @default(0)
+  created     Int       @default(0)
+  updated     Int       @default(0)
+  failed      Int       @default(0)
+  errorLog    Json?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, createdAt])
 }

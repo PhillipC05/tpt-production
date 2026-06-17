@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Badge } from "@tpt/ui/badge";
 import { Button } from "@tpt/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@tpt/ui/card";
+import { AddToCartButton } from "@/components/add-to-cart-button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8787";
 
@@ -120,11 +121,17 @@ export default async function ListingDetailPage({
 
         {/* CTA */}
         <div className="flex gap-3 pt-2">
-          <Button asChild size="lg">
-            <Link href={`/orders/custom?listingId=${listing.id}`}>Place Custom Order</Link>
-          </Button>
+          <AddToCartButton
+            listingId={listing.id}
+            title={listing.title}
+            price={listing.price}
+            currency={listing.currency}
+          />
           <Button variant="outline" size="lg" asChild>
-            <Link href="/catalog">Browse More</Link>
+            <Link href="/cart">View Cart</Link>
+          </Button>
+          <Button variant="ghost" size="lg" asChild>
+            <Link href={`/orders/custom?listingId=${listing.id}`}>Custom Order</Link>
           </Button>
         </div>
       </div>
